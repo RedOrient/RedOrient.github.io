@@ -1,0 +1,190 @@
+POJ1013
+
+题目描述：若干个金币中有一个是假币，假币的大小颜色都和真的一样，
+
+只有重量不一样，但是有可能比真的轻，也有可能重，现在要通过称重找出那个假的。 
+
+输入格式：
+
+第一行一个整数n，表示有n组数据，每组数组有3行输入，每行由被2个空格隔开的三个字符串组成，表示一次称重的结果，前字符串由A-L的大写英文字母组成，分别表示天平左边和右边分别放的金币编号。第三个字符串有三种情况”even”,”up”,”down”.分别表示平衡，左边轻，右边轻。 
+
+输出格式：
+
+每组数据输出一行，表示哪个金币是假币，并输出是比真币重还是轻。例如：K is the counterfeit coin and it is light. 
+
+
+解题思路：
+  
+这个题我是看的英文描述，没有看中文，相对简单吧。
+
+1.设置一个p为轻重状态数组 ，用于标记轻重
+
+2.每次称球的时候，如果是"even"则把对应的设置为"真东西"， 为1，
+如果是"up"或"donw" 则把未分辨出真假的硬币中flag数组中对应的设置为0
+
+3.最后得到p数组的状态可以判定真假。
+
+代码：
+
+/*2016/6/3*/
+#include <cstdlib>
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+//返回1则为重，0则为轻 。 *cf为假币 
+int IsCounterfeit(string left[], string right[], string status[], char *cf)
+{
+    string hy, lt, ev;
+    int i = 0, ot = 0, is = 0;
+    for(; i<3; i++)
+    {
+          if (status[i] == "even")
+          {
+                        ev = ev+left[i]+right[i]; 
+          }
+          else if (status[i] == "up")
+          {
+                        if (hy.size() == 0 && lt.size() == 0)
+                        {
+                                      hy = left[i];
+                                      lt = right[i];
+                                      continue;
+                        }
+                        int j;
+                        //这里因为erase函数会改变下标，所以控制下标的增加 
+                        for(j=0; j<hy.size();)
+                        {
+                              if(left[i].find(hy[j]) == left[i].npos)
+                              {
+                                                hy.erase(j, 1);
+                              }
+                              else
+                              {
+                                                j++;
+                              }
+                        }
+                        for(j=0; j<lt.size();)
+                        {
+                              if(right[i].find(lt[j]) == right[i].npos)
+                              {
+                                                lt.erase(j, 1);
+                              }
+                              else
+                              {
+                                                j++;
+                              }
+                        }
+          }
+          else
+          {
+                        if (hy.size() == 0 && lt.size() == 0)
+                        {
+                                      hy = right[i];
+                                      lt = left[i];
+                                      continue;
+                        }
+                        int j;
+                        for(j=0; j<hy.size();)
+                        {
+                              if(right[i].find(hy[j]) == right[i].npos)
+                              {
+                                               hy.erase(j, 1);
+                                               //cout << hy << endl;
+                              }
+                              else
+                              {
+                                               j++;
+                              }
+                        }
+                        for(j=0; j<lt.size();)
+                        {     
+                              if(left[i].find(lt[j]) == left[i].npos)
+                              {
+                                                lt.erase(j, 1);
+                              }
+                              else
+                              {
+                                                j++;
+                              }
+                        }
+         
+          }          
+    }
+    
+    //cout << hy << endl << lt << endl;
+    //cout << ev << endl;
+    //筛选出的疑重币组和疑轻币组都要经过确定真币的再次筛选 
+    for(i=0; i<hy.size()&&ev.size()!=0;)
+    {
+             if(ev.find(hy[i]) != ev.npos)
+             {
+                               hy.erase(i, 1);
+             }
+             else
+             {
+                               i++;
+             }
+    }
+    for(i=0; i<lt.size()&&ev.size()!=0;)
+    {
+             if (ev.find(lt[i]) != ev.npos)
+             {
+                                lt.erase(i, 1);
+             }
+             else
+             {
+                                i++;
+             }
+    }
+    //cout << hy << endl << lt << endl;
+    
+    if(hy.size() == 1)
+    {
+                 *cf = hy[0];
+                 return 1;
+    }
+    if(lt.size() == 1)
+    {
+                 *cf = lt[0];
+                 return 0;
+    }
+}
+int main(void)
+{ 
+    //m为假币的名称数组，p为轻重状态数组 
+    int n, ot = 0, pt = 0, p[100];
+    char m[100];
+    cin >> n;
+    while(n--)
+    {
+          int i = 0;
+          string left[5];
+          string right[5];
+          string status[5];
+          for(i=0; i<3; i++)
+          {
+                   cin >> left[i];
+                   cin >> right[i];
+                   cin >> status[i]; 
+          }
+          p[ot++] = IsCounterfeit(left, right, status, &m[pt++]);    
+    }
+    
+    for(n=0; n<ot; n++)
+    {
+             if (p[n] == 1)
+             {
+                      cout << m[n] << " is the counterfeit coin and it is heavy." << endl;
+             }
+             else
+             {
+                      cout << m[n] << " is the counterfeit coin and it is light." << endl;
+             }
+    }
+    
+    
+    system("PAUSE");
+    return 0;
+}
